@@ -1,6 +1,12 @@
+import torch.nn
 from torch import nn
 
+from torch.nn.utils import weight_norm, remove_weight_norm, spectral_norm
+
 from silver_jingles.layers.conv import WeightNormConv1D, WeightNormConvTransposed1D
+from silver_jingles.modules.discriminators.period_discriminators import PeriodDiscriminator
+from silver_jingles.modules.discriminators.resolution_discriminators import ResolutionDiscriminator, \
+    MultiResolutionDiscriminator
 from silver_jingles.modules.fundamental_waveform_generators import InputUpSamplingResidualWaveformGenerator
 from silver_jingles.modules.residual_blocks import ResBlock1
 from silver_jingles.activations.alias_free import AliasFreeActivation1d
@@ -69,6 +75,31 @@ class BigVGAN(nn.Module):
 
     def forward(self, x):
         return self.generator(x)
+
+
+class BigVGANMRD(torch.nn.Module):
+    def __init__(self,
+                 n_ffts=(1024, 2048, 512),
+                 hop_lengths=(120, 240, 50),
+                 win_lengths=(600, 1200, 240)):
+        super().__init__()
+        res_discriminators = nn.ModuleList([ResolutionDiscriminator(n_fft=n_fft, hop_length=hop_len, win_length=win_len)
+                                            for n_fft, hop_len, win_len in zip(n_ffts, hop_lengths, win_lengths)])
+        self.multi_resolution_discriminator = MultiResolutionDiscriminator(res_discriminators)
+
+    def forward(self, x):
+        return self.multi_resolution_discriminator(x)
+
+
+class BigVGANMPD(torch.nn.Module):
+    def __init__(self, mpd_reshapes=(2, 3, 5, 7, 11)):
+        super().__init__()
+        period_discriminators = nn.ModuleList([PeriodDiscriminator(period=rs) for rs in mpd_reshapes])
+        self.multi_resolution_discriminator = MultiResolutionDiscriminator(period_discriminators)
+
+    def forward(self, x):
+        return self.multi_resolution_discriminator(x)
+
 
 # ---- below are other commonly used configurations with pre-trained versions of the model from NVIDIA ---- #
 

@@ -3,8 +3,23 @@
 ## Overview
 Silver Jingles is a powerful audio generation library designed specifically for neural vocoders and codecs. It offers a straightforward and flexible approach to audio generation without the complexity of configuration files commonly found in other libraries. The library trust in the importance of explicit code over cumbersome configuration files, as it simplifies components re-usability across various frameworks.
 
+## Status - WiP early prototyping 🏗️
+* 09/10 - Ported and adjusted BigVGAN components from [official NVIDIA implementation](https://github.com/NVIDIA/BigVGAN) to the repository structure. 
+* Next steps:
+  1. Adding as an example of usage vanila torch training recipe for BigVGAN.
+  2. Unit/e2e testing of existing components and adding docstrings.
+  3. Porting NVIDIA checkpoints to work with the library.
+  4. Adding vanilla HiFiGAN and adjusting the BigVGAN model blocks to re-use it
+  5. Adding BigVSAN, EnCodec, HiFiCodec
+
+## Structure:
+* **activations** - just activation functions ;)
+* **layers** - simple extensions to torch modules that are used to build more complicated architectures.
+* **module** - build from several layers - the main differentiator between model and module is Dependency Inversion. Modules are more a structure and logic rather than specifically configured version. For example ResBlock1 just assumes two stacks of convolutions and activations - which convolutions or activatios you use you need to provide when constructing the block.
+* **models** - specific configuration of the whole model blocks, build from modules. 
+
 ## Key Principles
-The library is built on solid software development principles, ensuring a clean and maintainable codebase:
+The library is built with SOLID software development principles, ensuring a clean and maintainable codebase:
 
 1. **Single Responsibility**: We adhere to the Single Responsibility Principle, separating various aspects of the library into dedicated components. The core model focuses on the architecture and forward method, while other responsibilities like computing loss, validation steps, and training/testing recipes are handled by specialized classes or within the frameworks that utilize the library.
 
